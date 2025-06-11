@@ -140,11 +140,7 @@ class Calculator {
         }
 
         void toggleHistory() {
-                if (historyPane.isVisible()) {
-                        historyPane.setVisible(false);
-                } else {
-                        historyPane.setVisible(true);
-                }
+                historyPane.setVisible(!historyPane.isVisible());
                 frame.revalidate();
         }
 
@@ -162,11 +158,7 @@ class Calculator {
                         if (current.length() > 0) {
                                 current = current.substring(0, current.length() - 1);
                         }
-                        if (current.equals("")) {
-                                displayField.setText("0");
-                        } else {
-                                displayField.setText(current);
-                        }
+                        displayField.setText(current.isEmpty() ? "0" : current);
                 } else if (input.equals("+/-")) {
                         if (!current.equals("")) {
                                 if (current.startsWith("-")) {
@@ -186,6 +178,14 @@ class Calculator {
                         if (!current.equals("") && !operator.equals("")) {
                                 double secondNumber = Double.parseDouble(current);
                                 double result = doCalculation(firstNumber, secondNumber, operator);
+
+                                if (Double.isNaN(result)) {
+                                        displayField.setText("Error");
+                                        current = "";
+                                        operator = "";
+                                        startNew = true;
+                                        return;
+                                }
 
                                 String equation = formatNumber(firstNumber) + " " + operator + " " +
                                                                   formatNumber(secondNumber) + " = " + formatNumber(result);
@@ -233,22 +233,15 @@ class Calculator {
         }
 
         double doCalculation(double num1, double num2, String op) {
-                if (op.equals("+")) {
-                        return num1 + num2;
-                } else if (op.equals("-")) {
-                        return num1 - num2;
-                } else if (op.equals("*")) {
-                        return num1 * num2;
-                } else if (op.equals("/")) {
-                        if (num2 == 0) return 0;
-                        return num1 / num2;
-                } else if (op.equals("^")) {
-                        return Math.pow(num1, num2);
-                } else if (op.equals("%")) {
-                        if (num2 == 0) return 0;
-                        return num1 % num2;
+                switch (op) {
+                        case "+": return num1 + num2;
+                        case "-": return num1 - num2;
+                        case "*": return num1 * num2;
+                        case "/": return (num2 == 0) ? Double.NaN : num1 / num2;
+                        case "^": return Math.pow(num1, num2);
+                        case "%": return (num2 == 0) ? Double.NaN : num1 % num2;
+                        default: return 0;
                 }
-                return 0;
         }
 
         String formatNumber(double value) {
@@ -260,10 +253,10 @@ class Calculator {
         }
 
         void updateHistory() {
-                String historyText = "";
-                for (int i = 0; i < history.size(); i++) {
-                        historyText += history.get(i) + "\n";
+                StringBuilder historyText = new StringBuilder();
+                for (String h : history) {
+                        historyText.append(h).append("\n");
                 }
-                historyArea.setText(historyText);
+                historyArea.setText(historyText.toString());
         }
 }
